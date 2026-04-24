@@ -47,19 +47,26 @@ class PianoView extends StatelessWidget {
                   octave: firstNoteOctave + octaveCounter,
                   noteIndex: index % 7,
                   isFlat: false);
-              return AnimatedContainer(
+              const whiteDefault = Color(0xFFFAF6EC);
+              final whiteColor =
+                  buttonColors?[currentNote.midiNoteNumber] ?? whiteDefault;
+              return TweenAnimationBuilder<Color?>(
+                tween: ColorTween(begin: whiteDefault, end: whiteColor),
                 duration: const Duration(milliseconds: 80),
-                margin:
-                    EdgeInsets.symmetric(horizontal: whiteButtonWidth / 100),
-                padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 8),
-                width: whiteButtonWidth - ((whiteButtonWidth / 100) * 2),
-                height: whiteButtonHeight,
-                decoration: BoxDecoration(
-                    color: buttonColors?[currentNote.midiNoteNumber] ??
-                        const Color(0xFFFAF6EC),
-                    borderRadius: BorderRadius.only(
-                        bottomRight: Radius.circular(whiteButtonWidth / 7),
-                        bottomLeft: Radius.circular(whiteButtonWidth / 7))),
+                builder: (context, animatedColor, child) => Container(
+                  margin:
+                      EdgeInsets.symmetric(horizontal: whiteButtonWidth / 100),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 1, vertical: 8),
+                  width: whiteButtonWidth - ((whiteButtonWidth / 100) * 2),
+                  height: whiteButtonHeight,
+                  decoration: BoxDecoration(
+                      color: animatedColor ?? whiteColor,
+                      borderRadius: BorderRadius.only(
+                          bottomRight: Radius.circular(whiteButtonWidth / 7),
+                          bottomLeft: Radius.circular(whiteButtonWidth / 7))),
+                  child: child,
+                ),
                 child: Align(
                   alignment: Alignment.bottomCenter,
                   child: showNames
@@ -98,23 +105,31 @@ class PianoView extends StatelessWidget {
                     noteIndex: index % 7,
                     isFlat: true,
                   );
+                  const blackDefault = Colors.black;
+                  final blackColor =
+                      buttonColors?[currentNote.midiNoteNumber] ?? blackDefault;
                   return Row(
                     children: [
-                      AnimatedContainer(
+                      TweenAnimationBuilder<Color?>(
+                        tween: ColorTween(
+                            begin: blackDefault, end: blackColor),
                         duration: const Duration(milliseconds: 80),
-                        margin: EdgeInsets.symmetric(
-                            horizontal: whiteButtonWidth / 100),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        width: blackButtonWidth - (whiteButtonWidth / 100) * 2,
-                        height: blackButtonHeight,
-                        decoration: BoxDecoration(
-                            color: buttonColors?[currentNote.midiNoteNumber] ??
-                                Colors.black,
-                            borderRadius: BorderRadius.only(
-                                bottomLeft:
-                                    Radius.circular(blackButtonWidth / 7),
-                                bottomRight:
-                                    Radius.circular(blackButtonWidth / 7))),
+                        builder: (context, animatedColor, child) => Container(
+                          margin: EdgeInsets.symmetric(
+                              horizontal: whiteButtonWidth / 100),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          width:
+                              blackButtonWidth - (whiteButtonWidth / 100) * 2,
+                          height: blackButtonHeight,
+                          decoration: BoxDecoration(
+                              color: animatedColor ?? blackColor,
+                              borderRadius: BorderRadius.only(
+                                  bottomLeft:
+                                      Radius.circular(blackButtonWidth / 7),
+                                  bottomRight:
+                                      Radius.circular(blackButtonWidth / 7))),
+                          child: child,
+                        ),
                         child: Align(
                           alignment: Alignment.bottomCenter,
                           child: showNames

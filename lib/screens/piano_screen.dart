@@ -29,6 +29,7 @@ class _PianoScreenState extends State<PianoScreen> {
   final Map<int, _TapState> _taps = {};
   bool _isLoading = true;
   bool _is432 = false;
+  double _zoom = 1.0;
 
   @override
   void initState() {
@@ -128,6 +129,24 @@ class _PianoScreenState extends State<PianoScreen> {
                   height: kToolbarHeight,
                   child: AppBar(
                     primary: false,
+                    titleSpacing: 0,
+                    title: Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: Slider(
+                              value: _zoom,
+                              min: 1.0,
+                              max: 3.0,
+                              onChanged: (v) => setState(() => _zoom = v),
+                            ),
+                          ),
+                          const Spacer(flex: 3),
+                        ],
+                      ),
+                    ),
                     actions: [
                       Padding(
                         padding: const EdgeInsets.only(right: 12),
@@ -150,21 +169,30 @@ class _PianoScreenState extends State<PianoScreen> {
               ),
               Expanded(
                 child: LayoutBuilder(
-                  builder: (context, pianoConstraints) => RotatedBox(
-                    quarterTurns: 3,
-                    child: PianoPro(
-                      noteCount: 15,
-                      firstNoteIndex: 0,
-                      firstOctave: 3,
-                      whiteHeight: pianoConstraints.maxWidth,
-                      blackHeightRatio: 1.55,
-                      blackWidthRatio: 1.4,
-                      showNames: true,
-                      showOctave: true,
-                      buttonColors: _buildPressedColors(),
-                      onTapDown: _onTapDown,
-                      onTapUpdate: _onTapUpdate,
-                      onTapUp: _onTapUp,
+                  builder: (context, pianoConstraints) => ClipRect(
+                    child: OverflowBox(
+                      minWidth: 0,
+                      maxWidth: pianoConstraints.maxWidth,
+                      minHeight: 0,
+                      maxHeight: pianoConstraints.maxHeight * _zoom,
+                      alignment: Alignment.center,
+                      child: RotatedBox(
+                        quarterTurns: 3,
+                        child: PianoPro(
+                          noteCount: 15,
+                          firstNoteIndex: 0,
+                          firstOctave: 3,
+                          whiteHeight: pianoConstraints.maxWidth,
+                          blackHeightRatio: 1.55,
+                          blackWidthRatio: 1.4,
+                          showNames: true,
+                          showOctave: true,
+                          buttonColors: _buildPressedColors(),
+                          onTapDown: _onTapDown,
+                          onTapUpdate: _onTapUpdate,
+                          onTapUp: _onTapUp,
+                        ),
+                      ),
                     ),
                   ),
                 ),
