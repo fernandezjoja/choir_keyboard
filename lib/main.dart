@@ -16,7 +16,7 @@ class PianoApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
+          seedColor: const Color(0xFF007BA7),
           brightness: Brightness.dark,
         ),
       ),
