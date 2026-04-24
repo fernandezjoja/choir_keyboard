@@ -25,15 +25,28 @@ class _PianoScreenState extends State<PianoScreen> {
   static const Color _pressedWhiteColor = Color(0xFFC4BDA8);
   static const Color _pressedBlackColor = Color(0xFF5A5A5A);
 
-  static const int _noteCount = 15;
-  static const int _firstNoteIndex = 0;
-  static const int _firstOctave = 3;
+  // Full keyboard: C1..C7 inclusive = 43 white keys.
+  static const int _noteCount = 43;
+  static const int _firstNoteIndex = 0; // C
+  static const int _firstOctave = 1;
+
+  // Visible white-key counts at each zoom endpoint.
+  static const int _minVisibleKeys = 28; // C1..B4 when fully zoomed out
+  static const int _maxVisibleKeys = 8;  // one octave (C..C) when fully zoomed in
+  static const int _defaultVisibleKeys = 15; // C3..C5 on launch
+
+  // _zoom is the "overflow factor": pre-rotation piano width = availH * _zoom,
+  // so visible fraction of the full keyboard is (1 / _zoom). The factor
+  // therefore equals totalKeys / visibleKeys.
+  static const double _zoomMin = _noteCount / _minVisibleKeys;
+  static const double _zoomMax = _noteCount / _maxVisibleKeys;
+  static const double _zoomDefault = _noteCount / _defaultVisibleKeys;
 
   final AudioService _audioService = AudioService();
   final Map<int, _TapState> _taps = {};
   bool _isLoading = true;
   bool _is432 = false;
-  double _zoom = 1.0;
+  double _zoom = _zoomDefault;
   double _scrollOffset = 0.5;
 
   @override
@@ -148,8 +161,8 @@ class _PianoScreenState extends State<PianoScreen> {
                             flex: 1,
                             child: Slider(
                               value: _zoom,
-                              min: 1.0,
-                              max: 3.0,
+                              min: _zoomMin,
+                              max: _zoomMax,
                               onChanged: (v) => setState(() => _zoom = v),
                             ),
                           ),
