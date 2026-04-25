@@ -22,7 +22,7 @@ class PianoScreen extends StatefulWidget {
 
 class _PianoScreenState extends State<PianoScreen> {
   static const Duration _switchHysteresis = Duration(milliseconds: 15);
-  static const Color _pressedWhiteColor = Color(0xFFC4BDA8);
+  static const Color _pressedWhiteColor = Color(0xFFB4B1A8);
   static const Color _pressedBlackColor = Color(0xFF5A5A5A);
 
   // Full keyboard: C1..C7 inclusive = 43 white keys.
@@ -33,7 +33,8 @@ class _PianoScreenState extends State<PianoScreen> {
   // Visible white-key counts at each zoom endpoint.
   static const int _minVisibleKeys = 28; // C1..B4 when fully zoomed out
   static const int _maxVisibleKeys = 8;  // one octave (C..C) when fully zoomed in
-  static const int _defaultVisibleKeys = 15; // C3..C5 on launch
+  static const int _defaultVisibleKeys = 17; // A2..C5 on launch
+  static const int _defaultStartKey = 12; // key index of A2
 
   // _zoom is the "overflow factor": pre-rotation piano width = availH * _zoom,
   // so visible fraction of the full keyboard is (1 / _zoom). The factor
@@ -46,8 +47,10 @@ class _PianoScreenState extends State<PianoScreen> {
   final Map<int, _TapState> _taps = {};
   bool _isLoading = true;
   bool _is432 = false;
+  bool _isMenuOpen = false;
+  bool _isLocked = true;
   double _zoom = _zoomDefault;
-  double _scrollOffset = 0.5;
+  double _scrollOffset = _defaultStartKey / (_noteCount - _defaultVisibleKeys);
 
   @override
   void initState() {
@@ -143,7 +146,9 @@ class _PianoScreenState extends State<PianoScreen> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            return Row(
+            return Stack(
+              children: [
+                Row(
             children: [
               RotatedBox(
                 quarterTurns: 3,
@@ -163,7 +168,9 @@ class _PianoScreenState extends State<PianoScreen> {
                               value: _zoom,
                               min: _zoomMin,
                               max: _zoomMax,
-                              onChanged: (v) => setState(() => _zoom = v),
+                              onChanged: _isLocked
+                                  ? null
+                                  : (v) => setState(() => _zoom = v),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -171,13 +178,19 @@ class _PianoScreenState extends State<PianoScreen> {
                             flex: 3,
                             child: SizedBox(
                               height: kToolbarHeight - 16,
-                              child: _MiniPianoScrollbar(
-                                whiteKeyCount: _noteCount,
-                                firstNoteIndex: _firstNoteIndex,
-                                zoom: _zoom,
-                                scrollOffset: _scrollOffset,
-                                onScrollChanged: (v) =>
-                                    setState(() => _scrollOffset = v),
+                              child: Opacity(
+                                opacity: _isLocked ? 0.4 : 1.0,
+                                child: IgnorePointer(
+                                  ignoring: _isLocked,
+                                  child: _MiniPianoScrollbar(
+                                    whiteKeyCount: _noteCount,
+                                    firstNoteIndex: _firstNoteIndex,
+                                    zoom: _zoom,
+                                    scrollOffset: _scrollOffset,
+                                    onScrollChanged: (v) =>
+                                        setState(() => _scrollOffset = v),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -186,20 +199,10 @@ class _PianoScreenState extends State<PianoScreen> {
                       ),
                     ),
                     actions: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        child: Row(
-                          children: [
-                            Text(_is432 ? '432 Hz' : '440 Hz'),
-                            Switch(
-                              value: _is432,
-                              onChanged: (v) {
-                                setState(() => _is432 = v);
-                                _audioService.setReferenceHz(v ? 432 : 440);
-                              },
-                            ),
-                          ],
-                        ),
+                      IconButton(
+                        icon: Icon(_isMenuOpen ? Icons.close : Icons.tune),
+                        onPressed: () =>
+                            setState(() => _isMenuOpen = !_isMenuOpen),
                       ),
                     ],
                   ),
@@ -246,7 +249,60 @@ class _PianoScreenState extends State<PianoScreen> {
                 ),
               ),
             ],
-          );
+          ),
+                if (_isMenuOpen)
+                  Positioned(
+                    left: kToolbarHeight,
+                    top: 0,
+                    width: 140,
+                    height: 240,
+                    child: Material(
+                      elevation: 6,
+                      color: Theme.of(context).colorScheme.surface,
+                      child: RotatedBox(
+                        quarterTurns: 3,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(_is432 ? '432 Hz' : '440 Hz'),
+                                  Switch(
+                                    value: _is432,
+                                    onChanged: (v) {
+                                      setState(() => _is432 = v);
+                                      _audioService
+                                          .setReferenceHz(v ? 432 : 440);
+                                    },
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('Lock'),
+                                  Switch(
+                                    value: _isLocked,
+                                    onChanged: (v) =>
+                                        setState(() => _isLocked = v),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
           },
         ),
       ),

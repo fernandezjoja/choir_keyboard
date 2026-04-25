@@ -24,6 +24,19 @@ public class FlutterMidiProPlugin: NSObject, FlutterPlugin {
         let bank = args["bank"] as! Int
         let program = args["program"] as! Int
         let url = URL(fileURLWithPath: path)
+
+        // Configure the audio session for low-latency playback. iOS's default
+        // I/O buffer is ~20 ms; dropping the preferred buffer duration to 5 ms
+        // cuts perceived key-press lag significantly.
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, options: [.mixWithOthers])
+            try session.setPreferredIOBufferDuration(0.005)
+            try session.setActive(true)
+        } catch {
+            NSLog("flutter_midi_pro: AVAudioSession setup failed: \(error)")
+        }
+
         var chSamplers: [AVAudioUnitSampler] = []
         var chAudioEngines: [AVAudioEngine] = []
         for _ in 0...15 {

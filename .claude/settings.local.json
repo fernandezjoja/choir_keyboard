@@ -6,7 +6,11 @@
       "WebFetch(domain:pub.dev)",
       "Bash(flutter analyze *)",
       "Bash(flutter pub *)",
-      "Bash(xargs -I {} find {}/lib -type f -name \"*.dart\")"
+      "Bash(xargs -I {} find {}/lib -type f -name \"*.dart\")",
+      "Bash(pkill -f \"flutter run\")",
+      "Bash(pkill -f \"devicectl device process launch\")",
+      "Bash(pkill -f \"devicectl device install\")",
+      "Bash(flutter run *)"
     ]
   }
 }

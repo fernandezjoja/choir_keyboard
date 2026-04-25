@@ -19,6 +19,10 @@ class AudioService {
       program: 0,
     );
     _isInitialized = true;
+    // CC 7 — channel volume. GM default is 100; push to max to compensate for
+    // the lower velocity so notes are louder without sounding harder.
+    _midiPro.controlChange(
+        sfId: _sfId, channel: _channel, controller: 7, value: 127);
     if (_tuningCents != 0) _applyTuning();
   }
 
@@ -32,7 +36,7 @@ class AudioService {
     _midiPro.setGlobalTuning(sfId: _sfId, cents: _tuningCents);
   }
 
-  void playNote(int midiNote, {int velocity = 127}) {
+  void playNote(int midiNote, {int velocity = 95}) {
     if (!_isInitialized) return;
     _midiPro.playNote(sfId: _sfId, channel: _channel, key: midiNote, velocity: velocity);
   }
